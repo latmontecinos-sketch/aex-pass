@@ -12,22 +12,18 @@ El repo tiene tres partes:
 | Carpeta | Qué es |
 |---|---|
 | [`src/`](src) | El contrato **Aex Prueba Pass Stellar 01**, en Rust con `soroban-sdk` |
-| [`web/`](web) | La plataforma **Aex Pass**: una página que explica y ejecuta el flujo paso a paso, en español, para quien nunca usó una blockchain |
-| `demo.ps1` · `DEMO.cmd` | La misma demo desde el Stellar CLI, con cada resultado traducido a lenguaje simple |
+| `demo.ps1` · `DEMO.cmd` | La demo desde el Stellar CLI, con cada resultado traducido a lenguaje simple |
+| [`web/`](web) | Solo redirige `aex-pass.vercel.app` a la nueva casa de la plataforma |
 
 ## La plataforma
 
-Cada visitante crea sus propias cuentas de prueba (Friendbot) y su propio evento: la página despliega una instancia nueva del contrato ya subido a la red. Después compra el pase, deja entrar al invitado e intenta entrar de nuevo, y ve cómo el contrato lo rechaza. Un panel lee en vivo el estado del pase, los saldos y los eventos del contrato; cada paso enlaza su transacción en stellar.expert y muestra el comando equivalente del Stellar CLI.
+La explicación y la ejecución interactiva viven en **Aex Stellar Lab**, mi biblioteca de Stellar Elite:
 
-Todo corre en el navegador contra testnet, con `@stellar/stellar-sdk`: no hay servidor ni base de datos. Las llaves de las cuentas de prueba quedan en el `localStorage` del navegador y solo sirven en testnet.
+- Resumen de la tarea: https://aex-stellar-lab.vercel.app/tareas/aex-pass
+- Ejecución (los 11 pasos reales con el CLI y el flujo para ejecutarlo desde el navegador): https://aex-stellar-lab.vercel.app/tareas/aex-pass/ejecucion
+- Cómo funciona: https://aex-stellar-lab.vercel.app/tareas/aex-pass/explicacion
 
-```bash
-cd web
-pnpm install
-pnpm dev
-```
-
-`node scripts/check.mts` corre una prueba de humo contra testnet: crea cuentas, despliega un evento, lee el pase y verifica que un check-in sin pase se rechace con el error `#3`.
+Su código está en [latmontecinos-sketch/aex-stellar-lab](https://github.com/latmontecinos-sketch/aex-stellar-lab).
 
 ## El contrato
 

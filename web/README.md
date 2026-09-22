@@ -1,15 +1,5 @@
-# Aex Pass · web
+# Aex Pass · web (redirección)
 
-La plataforma de Aex Pass: Next.js 16, React 19, Tailwind 4 y `@stellar/stellar-sdk`, todo en el navegador contra Stellar testnet.
+La plataforma de Aex Pass se mudó a **Aex Stellar Lab**: https://aex-stellar-lab.vercel.app/tareas/aex-pass
 
-```bash
-pnpm install
-pnpm dev          # http://localhost:3000
-pnpm build
-node scripts/check.mts   # prueba de humo contra testnet
-```
-
-- `src/lib/stellar.ts`: cuentas de prueba, despliegue de eventos, compra, check-in y lecturas (pase, saldos, eventos).
-- `src/components/aex-pass.tsx`: los cinco pasos y el panel en vivo.
-
-Más contexto en el [README del proyecto](../README.md).
+Este proyecto solo redirige `aex-pass.vercel.app` hacia allá, para que los links viejos sigan funcionando. El código de la plataforma vive en [latmontecinos-sketch/aex-stellar-lab](https://github.com/latmontecinos-sketch/aex-stellar-lab).
