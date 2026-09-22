@@ -1,0 +1,161 @@
+extern crate std;
+
+use super::*;
+use soroban_sdk::{
+    testutils::{Address as _, AuthorizedFunction, AuthorizedInvocation},
+    token::{StellarAssetClient, TokenClient},
+    IntoVal, Symbol,
+};
+
+const PRICE: i128 = 10_000_000; // 1 XLM en stroops
+
+struct Setup {
+    env: Env,
+    host: Address,
+    buyer: Address,
+    token: TokenClient<'static>,
+    pass: MeetPassClient<'static>,
+}
+
+fn setup() -> Setup {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let host = Address::generate(&env);
+    let buyer = Address::generate(&env);
+
+    let issuer = Address::generate(&env);
+    let sac = env.register_stellar_asset_contract_v2(issuer);
+    StellarAssetClient::new(&env, &sac.address()).mint(&buyer, &(5 * PRICE));
+
+    let contract_id = env.register(
+        MeetPass,
+        (
+            host.clone(),
+            sac.address(),
+            PRICE,
+            String::from_str(&env, "Aex Prueba Pass Stellar 01"),
+        ),
+    );
+
+    Setup {
+        token: TokenClient::new(&env, &sac.address()),
+        pass: MeetPassClient::new(&env, &contract_id),
+        env,
+        host,
+        buyer,
+    }
+}
+
+#[test]
+fn stores_event_config() {
+    let s = setup();
+    assert_eq!(
+        s.pass.name(),
+        String::from_str(&s.env, "Aex Prueba Pass Stellar 01")
+    );
+    assert_eq!(s.pass.price(), PRICE);
+    assert_eq!(s.pass.host(), s.host);
+    assert_eq!(s.pass.pass_of(&s.buyer), None);
+}
+
+#[test]
+fn buy_pays_host_and_requires_buyer_auth() {
+    let s = setup();
+    s.pass.buy(&s.buyer);
+
+    // La firma del comprador cubre buy y, dentro, el transfer del token.
+    // env.auths() solo refleja la ultima invocacion: se revisa antes de leer.
+    assert_eq!(
+        s.env.auths()[0],
+        (
+            s.buyer.clone(),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    s.pass.address.clone(),
+                    Symbol::new(&s.env, "buy"),
+                    (s.buyer.clone(),).into_val(&s.env),
+                )),
+                sub_invocations: std::vec![AuthorizedInvocation {
+                    function: AuthorizedFunction::Contract((
+                        s.token.address.clone(),
+                        Symbol::new(&s.env, "transfer"),
+                        (s.buyer.clone(), s.host.clone(), PRICE).into_val(&s.env),
+                    )),
+                    sub_invocations: std::vec![],
+                }],
+            }
+        )
+    );
+
+    assert_eq!(s.pass.pass_of(&s.buyer), Some(PassStatus::Bought));
+    assert_eq!(s.token.balance(&s.host), PRICE);
+    assert_eq!(s.token.balance(&s.buyer), 4 * PRICE);
+}
+
+#[test]
+fn cannot_buy_twice() {
+    let s = setup();
+    s.pass.buy(&s.buyer);
+    assert_eq!(s.pass.try_buy(&s.buyer), Err(Ok(Error::AlreadyBought)));
+    // El segundo intento no cobra nada.
+    assert_eq!(s.token.balance(&s.host), PRICE);
+}
+
+#[test]
+fn check_in_once_then_already_used() {
+    let s = setup();
+    s.pass.buy(&s.buyer);
+
+    s.pass.check_in(&s.buyer);
+
+    // Solo el anfitrión autoriza el check-in.
+    assert_eq!(
+        s.env.auths()[0],
+        (
+            s.host.clone(),
+            AuthorizedInvocation {
+                function: AuthorizedFunction::Contract((
+                    s.pass.address.clone(),
+                    Symbol::new(&s.env, "check_in"),
+                    (s.buyer.clone(),).into_val(&s.env),
+                )),
+                sub_invocations: std::vec![],
+            }
+        )
+    );
+    assert_eq!(s.pass.pass_of(&s.buyer), Some(PassStatus::Used));
+
+    assert_eq!(s.pass.try_check_in(&s.buyer), Err(Ok(Error::AlreadyUsed)));
+}
+
+#[test]
+fn check_in_without_pass_fails() {
+    let s = setup();
+    let stranger = Address::generate(&s.env);
+    assert_eq!(s.pass.try_check_in(&stranger), Err(Ok(Error::NoPass)));
+}
+
+#[test]
+#[should_panic]
+fn check_in_needs_host_signature() {
+    let s = setup();
+    s.pass.buy(&s.buyer);
+    // Sin mocks de auth, nadie firmó por el anfitrión.
+    s.env.set_auths(&[]);
+    s.pass.check_in(&s.buyer);
+}
+
+#[test]
+fn rejects_non_positive_price() {
+    let env = Env::default();
+    let host = Address::generate(&env);
+    let token = Address::generate(&env);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        env.register(
+            MeetPass,
+            (host, token, 0_i128, String::from_str(&env, "x")),
+        )
+    }));
+    assert!(result.is_err());
+}
