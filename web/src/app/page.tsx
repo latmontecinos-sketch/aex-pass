@@ -1,5 +1,5 @@
 import { AexPass } from "@/components/aex-pass";
-import { EXPLORER, ORIGINAL_CONTRACT, short } from "@/lib/stellar";
+import { HowIDidIt } from "@/components/how-i-did-it";
 
 const characters = [
   {
@@ -31,6 +31,14 @@ const glossary = [
   {
     term: "Contrato",
     text: "Un programa que vive en la blockchain y aplica reglas por sí solo. El de Aex Pass tiene dos: solo entra quien compró, y cada pase se usa una vez.",
+  },
+  {
+    term: "Stellar CLI",
+    text: "La herramienta oficial de Stellar para la terminal: compila, publica y usa contratos con comandos.",
+  },
+  {
+    term: "Invocar",
+    text: "Llamar a una función de un contrato, como buy (comprar) o check_in (dejar entrar).",
   },
   {
     term: "Cuenta",
@@ -66,13 +74,30 @@ const glossary = [
   },
 ];
 
+const nav = [
+  { href: "#como-lo-hice", label: "Cómo lo hice" },
+  { href: "#pruebalo", label: "Pruébalo" },
+  { href: "#glosario", label: "Glosario" },
+];
+
 export default function Home() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-8">
-      <header className="flex items-center justify-between gap-4 py-6">
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
         <span className="text-lg font-bold tracking-tight">
           Aex <span className="text-accent">Pass</span>
         </span>
+        <nav aria-label="Secciones" className="order-last w-full sm:order-none sm:w-auto">
+          <ul className="flex gap-5 text-sm text-muted">
+            {nav.map((item) => (
+              <li key={item.href}>
+                <a href={item.href} className="hover:text-text">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
           Red de prueba · Stellar testnet
         </span>
@@ -83,15 +108,30 @@ export default function Home() {
           Un pase que no se puede usar dos veces.
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-          Aex Pass controla la entrada a un Meet con un contrato en la blockchain de Stellar. Pruébalo en 5
-          pasos: creas un evento, compras un pase y ves cómo el contrato frena a quien intenta entrar dos veces.
+          Aex Pass controla la entrada a un Meet con un contrato en la blockchain de Stellar. Aquí ves cómo lo
+          construí y lo usé desde el Stellar CLI, paso a paso y con las transacciones reales. Después puedes
+          probarlo tú, sin instalar nada.
         </p>
-        <p className="mt-4 max-w-2xl rounded-xl bg-warn-soft px-4 py-3 text-sm">
-          Todo ocurre en la red de prueba: el XLM no tiene valor real y no necesitas instalar nada.
+        <div className="mt-6 flex flex-wrap gap-3">
+          <a
+            href="#como-lo-hice"
+            className="inline-flex h-11 items-center rounded-full bg-accent px-6 font-medium text-surface hover:opacity-90"
+          >
+            Ver cómo lo hice
+          </a>
+          <a
+            href="#pruebalo"
+            className="inline-flex h-11 items-center rounded-full border border-border bg-surface px-6 font-medium hover:border-accent hover:text-accent"
+          >
+            Probarlo
+          </a>
+        </div>
+        <p className="mt-6 max-w-2xl rounded-xl bg-warn-soft px-4 py-3 text-sm">
+          Todo ocurre en la red de prueba de Stellar: el XLM no tiene valor real.
         </p>
       </section>
 
-      <section aria-labelledby="personajes" className="pb-10">
+      <section aria-labelledby="personajes" className="pb-12">
         <h2 id="personajes" className="sr-only">
           Quién participa
         </h2>
@@ -110,18 +150,35 @@ export default function Home() {
         </ul>
       </section>
 
-      <section aria-labelledby="demo" className="scroll-mt-6">
-        <h2 id="demo" className="mb-5 text-2xl font-bold tracking-tight">
-          Pruébalo
+      <section id="como-lo-hice" aria-labelledby="como-lo-hice-titulo" className="scroll-mt-6">
+        <h2 id="como-lo-hice-titulo" className="text-3xl font-bold tracking-tight">
+          Cómo lo hice, paso a paso
         </h2>
+        <p className="mt-2 max-w-3xl leading-relaxed text-muted">
+          Primero hice todo desde la terminal con el Stellar CLI, la herramienta oficial de Stellar. Estos son los
+          11 pasos reales: el comando que usé, qué hace y qué quedó registrado en la blockchain.
+        </p>
+        <div className="mt-8">
+          <HowIDidIt />
+        </div>
+      </section>
+
+      <section id="pruebalo" aria-labelledby="pruebalo-titulo" className="scroll-mt-6 pt-20">
+        <h2 id="pruebalo-titulo" className="text-3xl font-bold tracking-tight">
+          Pruébalo tú
+        </h2>
+        <p className="mt-2 mb-6 max-w-3xl leading-relaxed text-muted">
+          El mismo flujo, con botones. La página crea tus propias cuentas de prueba y tu propio evento (una copia
+          nueva del contrato), así que puedes hacerlo de principio a fin sin instalar nada.
+        </p>
         <AexPass />
       </section>
 
-      <section id="glosario" aria-labelledby="glosario-titulo" className="scroll-mt-6 pt-16">
-        <h2 id="glosario-titulo" className="text-2xl font-bold tracking-tight">
+      <section id="glosario" aria-labelledby="glosario-titulo" className="scroll-mt-6 pt-20">
+        <h2 id="glosario-titulo" className="text-3xl font-bold tracking-tight">
           Glosario
         </h2>
-        <p className="mt-2 text-muted">Las palabras de la demo, en simple.</p>
+        <p className="mt-2 text-muted">Las palabras de esta página, en simple.</p>
         <dl className="mt-6 grid gap-3 sm:grid-cols-2">
           {glossary.map((g) => (
             <div key={g.term} className="rounded-2xl border border-border bg-surface p-4">
@@ -132,31 +189,22 @@ export default function Home() {
         </dl>
       </section>
 
-      <section aria-labelledby="original" className="pt-16">
-        <h2 id="original" className="text-2xl font-bold tracking-tight">
-          El contrato original
-        </h2>
-        <p className="mt-2 max-w-2xl leading-relaxed text-muted">
-          Aex Pass usa el contrato <strong className="text-text">Aex Prueba Pass Stellar 01</strong>, escrito en
-          Rust con Soroban. Su primera instancia se desplegó e invocó desde el Stellar CLI: ahí están la compra y
-          el check-in reales, y el pase en estado Usado.
-        </p>
+      <footer className="mt-16 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-sm text-muted">
+        <span>
+          Hecho por{" "}
+          <a href="https://latmontecinos.vercel.app" className="text-text hover:text-accent">
+            Alejandro Tintaya Montecinos
+          </a>{" "}
+          · Stellar Elite Bolivia
+        </span>
         <a
-          href={`${EXPLORER}/contract/${ORIGINAL_CONTRACT}`}
+          href="https://github.com/latmontecinos-sketch/aex-pass"
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium hover:border-accent hover:text-accent"
+          className="hover:text-accent"
         >
-          Ver {short(ORIGINAL_CONTRACT)} en el explorador ↗
+          Código en GitHub ↗
         </a>
-      </section>
-
-      <footer className="mt-16 border-t border-border pt-6 text-sm text-muted">
-        Hecho por{" "}
-        <a href="https://latmontecinos.vercel.app" className="text-text hover:text-accent">
-          Alejandro Tintaya Montecinos
-        </a>{" "}
-        · Stellar Elite Bolivia
       </footer>
     </div>
   );
