@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "installCommand": "",
+  "redirects": [
+    { "source": "/", "destination": "https://aex-stellar-lab.vercel.app/tareas/aex-pass", "permanent": true },
+    { "source": "/:path+", "destination": "https://aex-stellar-lab.vercel.app/tareas/aex-pass", "permanent": true }
+  ]
+}

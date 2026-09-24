@@ -1,3 +1,17 @@
+# Rust / Soroban
 target/
 test_snapshots/
 .stellar/
+.soroban/
+
+# Secretos
+.env*
+*.pem
+
+# Vercel
+.vercel/
+
+# Borradores personales (guiones del video y salidas de Claude)
+Claude outputs/
+GUION.md
+GUION.html

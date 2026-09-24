@@ -13,7 +13,7 @@ El repo tiene tres partes:
 |---|---|
 | [`src/`](src) | El contrato **Aex Prueba Pass Stellar 01**, en Rust con `soroban-sdk` |
 | `demo.ps1` · `DEMO.cmd` | La demo desde el Stellar CLI, con cada resultado traducido a lenguaje simple |
-| [`web/`](web) | Solo redirige `aex-pass.vercel.app` a la nueva casa de la plataforma |
+| [`web/`](web) | Solo un `vercel.json` que redirige `aex-pass.vercel.app` a la nueva casa de la plataforma |
 
 ## La plataforma
 
@@ -70,11 +70,31 @@ cargo test
 stellar contract build
 ```
 
-Los tests cubren la compra (incluido el árbol de firmas: el comprador autoriza `buy` y el `transfer` interno), la doble compra, el check-in único, el check-in sin pase, el check-in sin firma del anfitrión y el precio inválido. El WASM compilado tiene el mismo hash que el desplegado.
+Los 14 tests cubren:
 
-### Lo aprendido
+- **compra:** paga al anfitrión, el árbol de firmas exacto (el comprador autoriza `buy` y el `transfer` interno, y nada más), el evento `bought`, el TTL de 120 días del pase y de la instancia, la doble compra, que nadie más pueda comprar a nombre del comprador y que un pago fallido no deje pase;
+- **check-in:** el uso único con el error `#4`, el evento `checked_in`, el check-in sin pase (`#3`), sin ninguna firma y con la firma del propio comprador;
+- **configuración:** los datos del evento y el rechazo de precios `0` y negativos (`#1`).
 
-La primera compra cobró 17,6 XLM de comisión, casi todo renta: `buy` extendió a 120 días el TTL del pase, de la instancia y del código. Ajustar esa ventana a la duración real del evento es lo siguiente por optimizar.
+El WASM compilado tiene el mismo hash que el desplegado.
+
+## La demo del CLI
+
+`DEMO.cmd` (o `pwsh -File demo.ps1`) recorre la consulta, la compra, el check-in y el rechazo, traduciendo cada resultado. Con `-Ensayo` la compra y los check-in solo se simulan (`--send=no`) y no se envía nada.
+
+Necesita el Stellar CLI 28, PowerShell 7 y dos identidades del CLI: `anfitrion`, la cuenta que desplegó el contrato (`check_in` exige su firma), e `invitado`, cualquier cuenta con XLM de prueba. La llave del anfitrión de la primera instancia vive solo en mi computadora; para correr la demo en otra, despliega tu propia instancia con tu identidad `anfitrion` y pásala con `-Contrato <id>`:
+
+```bash
+stellar keys generate anfitrion --network testnet --fund
+stellar keys generate invitado --network testnet --fund
+stellar contract build
+stellar contract deploy --wasm target/wasm32v1-none/release/aex_prueba_pass_stellar_01.wasm --source-account anfitrion --network testnet -- --host anfitrion --token CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC --price 10000000 --name "Mi evento"
+pwsh -File demo.ps1 -Contrato <id que devolvió el deploy>
+```
+
+## Lo aprendido
+
+La primera compra cobró 17,64 XLM de comisión, casi todo renta: `buy` extendió a 120 días el TTL del pase, de la instancia y del código. Ajustar esa ventana a la duración real del evento es lo siguiente por optimizar.
 
 ---
 
