@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      # La misma versión con la que se compiló el WASM desplegado.
+      - uses: dtolnay/rust-toolchain@1.98.1
         with:
           targets: wasm32v1-none
           components: rustfmt, clippy
@@ -18,5 +19,13 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
-      # El WASM tiene que compilar para el target de Soroban
-      - run: cargo build --release --target wasm32v1-none
+      # soroban-sdk 28 solo compila el WASM con el Stellar CLI.
+      - name: Instalar el Stellar CLI
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -sSL https://github.com/stellar/stellar-cli/releases/download/v28.0.0/stellar-cli-28.0.0-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C "$HOME/bin" stellar
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - run: stellar contract build
+      # Si el hash cambia, el código ya no es el del contrato desplegado en testnet.
+      - name: El WASM coincide con el desplegado
+        run: echo "bbc3d152adfe968892e0c7b96625617443c81694bef47d04b569665205967379  target/wasm32v1-none/release/aex_prueba_pass_stellar_01.wasm" | sha256sum --check
